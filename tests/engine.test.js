@@ -1,0 +1,7 @@
+'use strict';
+const assert=require('node:assert/strict'),E=require('../engine.js');
+for(let seed=1;seed<=200;seed++) {let s=E.create(seed);for(let i=0;i<15000&&!s.dead&&!s.won;i++) E.step(s,E.bot(s));assert.equal(s.won,true,`bot seed ${seed} at ${s.x}`);assert.equal(s.world.bosses.filter(b=>b.dead).length,5);}
+console.log('Bot: 200 seeds, five bosses, victory');
+let a=E.create(42),b=E.create(42);for(let i=0;i<300;i++){E.step(a,{right:true,jumpPress:i===50});E.step(b,{right:true,jumpPress:i===50})}assert.deepEqual(a,b);assert(a.x>80);console.log('Physics: deterministic fixed steps and movement');
+let s=E.create(1);E.step(s,{jumpPress:true});assert(s.vy<0);E.step(s,{jumpPress:true});assert.equal(s.jumps,2);E.step(s,{dashPress:true,right:true});assert(s.dashCd>0);console.log('Jump, double jump and dash');
+let rand=E.rng(9283), pop=Array.from({length:100},()=>Array.from({length:18},()=>rand()*2-1)),history=[];for(let gen=0;gen<4;gen++){let results=pop.map(weights=>{let s=E.create(12345);for(let i=0;i<1800&&!s.dead&&!s.won;i++)E.step(s,E.policy(s,weights));return {weights,fitness:E.fitness(s)}}).sort((a,b)=>b.fitness-a.fitness);history.push(results[0].fitness);let elite=results.slice(0,10);pop=Array.from({length:100},(_,i)=>i<10?elite[i].weights.slice():elite[Math.floor(rand()*10)].weights.map(v=>v+(rand()-.5)*.5));}assert(history.at(-1)>history[0],`fitness did not improve: ${history}`);console.log('Evolution fitness:',history.map(Math.round).join(' → '));
